@@ -1,0 +1,15 @@
+* codebreakers
+
+** Overview
+
+- Clients connect to a network port.
+- The get a welcome message, and asked for their team name.
+- When they send a name, they have joined.
+- They receive a coded message every 5s.
+- If they send a correct decoded version, they get a point.
+- (Resending doesn't earn them any extra points.)
+- If they send an incorrect decoded message, they lose a point.
+
+** License
+
+Copyright © 2014 Kris Jenkins
