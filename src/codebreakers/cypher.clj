@@ -1,6 +1,7 @@
 (ns codebreakers.cypher
   (:require [clojure.core.typed :refer [ann Seq check-ns cf Option HVec]]))
 
+
 (ann rot-char [Integer Character -> Character])
 (defn- rot-char
   [n c]
@@ -47,3 +48,17 @@
        (apply concat)
        (map second)
        (apply str)))
+
+(defn maybe-f
+  "Returns a function which may either be f, or identity."
+  [f]
+  (if (zero? (rand-int 2))
+    f
+    identity))
+
+(defn random-cypher
+  []
+  (comp #(apply str %)
+        (maybe-f reverse)
+        (maybe-f evens-first)
+        (maybe-f (partial rot (rand-int 26)))))
