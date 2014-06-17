@@ -17,7 +17,6 @@
   (current-encrypted-message [this])
   (new-game [this]))
 
-;;; TODO
 (sm/defrecord GameState
     [peers :- [{s/Str {:score s/Int
                        :team-name s/Str
@@ -28,23 +27,23 @@
 (extend-type GameState
   CypherGame
   (join
-   [this peer team-name language-name]
-   (update-in this [:peers peer] merge {:team-name team-name
-                                        :language-name language-name}))
+    [this peer team-name language-name]
+    (update-in this [:peers peer] merge {:team-name team-name
+                                         :language-name language-name}))
   (increment-score
-   [this peer]
-   (update-in this [:peers peer :score] inc))
+    [this peer]
+    (update-in this [:peers peer :score] inc))
   (decrement-score
-   [this peer]
-   (update-in this [:peers peer :score] dec))
+    [this peer]
+    (update-in this [:peers peer :score] dec))
   (new-game
-   [this]
-   (merge this {:secret "TODO"
-                :encryption-function (random-cypher)}))
+    [this]
+    (merge this {:secret "TODO"
+                 :encryption-function (random-cypher)}))
   (current-encrypted-message
-   [this]
-   (apply str ((:encryption-function this)
-               (:secret this)))))
+    [this]
+    (apply str ((:encryption-function this)
+                (:secret this)))))
 
 (defprotocol InboundGameMessage
   (process [this game-state]
@@ -74,7 +73,7 @@
       [(decrement-score game-state (:peer this)) (Incorrect. (:peer this))])))
 
 (def instructions
-"The Cypher Game
+  "The Cypher Game
 ----
 Periodically, the enemy will send encrypted messages. Your job is to
 decode them before the next one arrives.
