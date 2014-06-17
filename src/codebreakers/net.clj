@@ -1,5 +1,5 @@
 (ns codebreakers.net
-  (:require [clojure.core.async :as async :refer [<! >! chan go alts! go go-loop put!]]
+  (:require [clojure.core.async :as async :refer [<! >! chan go alts! go go-loop put! filter< timeout pub sub unsub]]
             [clojure.core.match :refer [match]]
             [schema.macros :as sm]
             [schema.core :as s]
@@ -52,60 +52,74 @@
   [destination string]
   (write-to destination (str string "\n")))
 
-(defrecord ClientConnection
-    [socket-name
+(sm/defrecord ClientConnection
+    [peer :- s/Str
      from-client
      to-client]
   IConnection
   (close! [this]
-    (async/close! (this :from-client))
-    (async/close! (this :to-client))))
+          (async/close! (this :from-client))
+          (async/close! (this :to-client))))
 
-(defprotocol IServer
-  (broadcast! [this])
-  (connection-chan [this]))
+(sm/defrecord MessageToClient
+    [message :- s/Str
+     peer :- (s/either s/Str (s/enum :broadcast))])
+
+(sm/defrecord MessageFromClient
+    [message :- s/Str
+     peer :- s/Str])
+
+(defprotocol IServer)
 
 (sm/defn make-server
   "Bind a server to the given port. Return two channels {:input c :output c}."
   [port :- s/Int]
   (printf "Starting server on port %d\n" port)
-  (let [server-socket (ServerSocket. port)
-        new-connections (chan 5)]
-
+  (let [server {:server-socket (ServerSocket. port)
+                :rate-limit 100
+                :to-clients (chan 10)
+                :from-clients (chan 10)}
+        publication (pub (:to-clients server) :peer)]
     (in-thread
-     (while (open? server-socket)
-       (try
-         (printf "Awaiting connection...\n")
-         (let [socket (.accept server-socket)]
-           (let [connection (map->ClientConnection {:socket-name (.. socket getInetAddress getHostAddress)
-                                                    :from-client (chan 5)
-                                                    :to-client (chan 5)})]
-             (printf "Connection %s\n" connection)
-             (flush)
-             (in-thread
+     (while (open? (:server-socket server))
+       (printf "Awaiting connection...\n")
+       (let [socket (.accept (:server-socket server))
+             peer (.. socket getInetAddress getHostAddress)]
+         (printf "Connection %s\n" peer)
+         (flush)
+         (in-thread
+          (let [to-client (chan)]
+            (try
+              (sub publication peer to-client)
+              (sub publication :all to-client)
+              ;;; Write-to-client loop.
+              (go-loop []
+                (when-let [v (<! to-client)]
+                  (println "Sending to client: " v)
+                  (flush)
+
+                  (when (open? socket)
+
+                    (try
+                      (write-to socket (format "%s\n" (:message v)))
+                      (catch SocketException e
+                        (println e)
+                        (async/close! to-client)))
+                    (recur))))
+              ;;; Read-from-client loop.
               (go
-                ;; Write to Client
                 (while (open? socket)
-                  (let [v (<! (:to-client connection))]
-                    (printf "Write %s\n" v)
-                    (flush)
-                    (write-to socket v)))
-                (close! connection))
-
-              (go
-                ;; Read from Client
-                (while (open? socket)
-                  (when-let [v (read-from socket)]
-                    (printf "Read %s\n" v)
-                    (flush)
-                    (>! (:from-client connection) v)))
-                (close! connection))
-
-              (put! new-connections connection)
-
-              :ok)))
-         (catch SocketException e (println e)))))
-
-    (reify
-      IServer
-      (connection-chan [this] new-connections))))
+                  (let [t (timeout (:rate-limit server))]
+                    (try
+                      (when-let [v (read-from socket)]
+                        (println "Read: " v)
+                        (flush)
+                        (>! (:from-clients server)
+                            (map->MessageFromClient {:peer peer
+                                                     :message v}))
+                        (<! t))
+                      (catch SocketException e
+                        (println e)
+                        (async/close! to-client))))))
+              ))))))
+    server))
