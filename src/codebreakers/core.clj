@@ -81,7 +81,7 @@
       [(decrement-score game-state (:peer this)) (Incorrect. (:peer this))])))
 
 (def instructions
-  "The Cypher Game
+"The Cypher Game
 ----
 Periodically, the enemy will send encrypted messages. Your job is to
 decode them before the next one arrives.
