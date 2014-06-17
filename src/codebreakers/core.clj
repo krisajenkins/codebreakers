@@ -10,6 +10,14 @@
             [codebreakers.messages :as msg :refer [map->Encrypted]])
   (:import [codebreakers.messages Join Guess Correct Incorrect Encrypted Tick]))
 
+(defn random-secret
+  []
+  (-> "doc/secrets.txt"
+      slurp
+      (clojure.string/split #"\n")
+      shuffle
+      first))
+
 (defprotocol CypherGame
   (join [this peer team-name language-name])
   (increment-score [this peer])
@@ -38,7 +46,7 @@
     (update-in this [:peers peer :score] dec))
   (new-game
     [this]
-    (merge this {:secret "TODO"
+    (merge this {:secret (random-secret)
                  :encryption-function (random-cypher)}))
   (current-encrypted-message
     [this]
