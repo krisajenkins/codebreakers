@@ -1,13 +1,11 @@
-(ns codebreakers.core-test
+(ns codebreakers.game-test
   (:require [clojure.test :refer :all]
             [schema.core]
             [clojure.core.async :as async :refer [alts!! <! >! <!! chan go alts! go go-loop put! timeout]]
             [clojure.algo.monads :refer :all]
-            [codebreakers.core :refer :all])
-  (:import [codebreakers.core GameState]
+            [codebreakers.game :refer :all])
+  (:import [codebreakers.game GameState]
            [codebreakers.messages Join Encrypted Tick Guess Correct Incorrect]))
-
-(schema.core/set-fn-validation! true)
 
 (deftest encryption-test
   (is (= "olleH"

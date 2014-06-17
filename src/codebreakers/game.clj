@@ -1,4 +1,4 @@
-(ns codebreakers.core
+(ns codebreakers.game
   (:require [clojure.edn :as edn]
             [clojure.core.async :as async :refer [chan go alts! <! <!! >! >!! go-loop put! timeout]]
             [clojure.core.match :refer [match]]
