@@ -72,3 +72,25 @@
            (:secret this))
       [(increment-score game-state (:peer this)) (Correct. (:peer this))]
       [(decrement-score game-state (:peer this)) (Incorrect. (:peer this))])))
+
+(def instructions
+"The Cypher Game
+----
+Periodically, the enemy will send encrypted messages. Your job is to
+decode them before the next one arrives.
+
+Points will be awarded for a correct answer.
+Points will be deducted for an incorrect answer.
+
+Every message is a single line, ending in \n.
+
+The enemy uses any/all of the following encryption methods, at random:
+
+* Reverse.
+* rot(n), where rot(1) means a->b, b->c, ... z->a.
+   (Numbers, whitespace & punctuation are unchanged.)
+* Even letters first (so letters 0,2,4,1,3,5 eg. 'hacking' becomes 'hcigakn').
+
+Bonus points will be issued to anyone who successfully decrypts all
+the messages and builds the foundations of Computer Science while
+they're at it.")
