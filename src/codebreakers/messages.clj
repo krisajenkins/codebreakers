@@ -14,13 +14,15 @@
      secret :- s/Str])
 
 (sm/defrecord Encrypted
-    [peer :- IP
+    [peer :- (s/either IP (s/enum :all))
      message :- s/Str])
 
 (sm/defrecord Correct
-    [peer :- IP])
+    [peer :- IP
+     message :- s/Str])
 
 (sm/defrecord Incorrect
-    [peer :- IP])
+    [peer :- IP
+     message :- s/Str])
 
 (sm/defrecord Tick [])

@@ -69,6 +69,9 @@
     [message :- s/Str
      peer :- s/Str])
 
+(sm/defrecord NewClient
+    [peer :- s/Str])
+
 (defprotocol IServer)
 
 (sm/defn make-server
@@ -86,7 +89,8 @@
        (let [socket (.accept (:server-socket server))
              peer (.. socket getInetAddress getHostAddress)]
          (printf "Connection %s\n" peer)
-         (flush)
+         (put! (:from-clients server)
+               (map->NewClient {:peer peer}))
          (in-thread
           (let [to-client (chan)]
             (try
@@ -95,11 +99,7 @@
               ;;; Write-to-client loop.
               (go-loop []
                 (when-let [v (<! to-client)]
-                  (println "Sending to client: " v)
-                  (flush)
-
                   (when (open? socket)
-
                     (try
                       (write-to socket (format "%s\n" (:message v)))
                       (catch SocketException e
@@ -112,14 +112,11 @@
                   (let [t (timeout (:rate-limit server))]
                     (try
                       (when-let [v (read-from socket)]
-                        (println "Read: " v)
-                        (flush)
                         (>! (:from-clients server)
                             (map->MessageFromClient {:peer peer
                                                      :message v}))
                         (<! t))
                       (catch SocketException e
                         (println e)
-                        (async/close! to-client))))))
-              ))))))
+                        (async/close! to-client))))))))))))
     server))

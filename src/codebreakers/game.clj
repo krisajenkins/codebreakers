@@ -7,7 +7,7 @@
             [clojure.pprint :refer [pprint]]
             [codebreakers.net :as net]
             [codebreakers.cypher :refer [random-cypher]]
-            [codebreakers.messages :as msg :refer [map->Encrypted]])
+            [codebreakers.messages :as msg :refer [map->Encrypted map->Correct map->Incorrect]])
   (:import [codebreakers.messages Join Guess Correct Incorrect Encrypted Tick]))
 
 (defn random-secret
@@ -37,7 +37,8 @@
   (join
     [this peer team-name language-name]
     (update-in this [:peers peer] merge {:team-name team-name
-                                         :language-name language-name}))
+                                         :language-name language-name
+                                         :score 0}))
   (increment-score
     [this peer]
     (update-in this [:peers peer :score] inc))
@@ -61,7 +62,8 @@
   Tick
   (process [this game-state]
     (let [new-game-state (new-game game-state)
-          broadcast-message (map->Encrypted {:message (current-encrypted-message new-game-state)})]
+          broadcast-message (map->Encrypted {:peer :all
+                                             :message (current-encrypted-message new-game-state)})]
       [new-game-state broadcast-message]))
 
   Join
@@ -77,8 +79,8 @@
   (process [this game-state]
     (if (= (:secret game-state)
            (:secret this))
-      [(increment-score game-state (:peer this)) (Correct. (:peer this))]
-      [(decrement-score game-state (:peer this)) (Incorrect. (:peer this))])))
+      [(increment-score game-state (:peer this)) (Correct.   (:peer this) "CORRECT!")]
+      [(decrement-score game-state (:peer this)) (Incorrect. (:peer this) "INCORRECT!")])))
 
 (def instructions
   "The Cypher Game
