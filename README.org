@@ -1,8 +1,14 @@
 * codebreakers
 
+A very-hurried game server written for the Codebreaking Challenge from
+the June 2014 West London Hack Night Meetup.
+
+Feel free to play with it, but if you read the code you'll learn more
+about how hurried I was than how to write Clojure programs!
+
 ** Running
 
-Call `lein run`.
+Call `lein run <port>`.
 
 ** License
 

@@ -1,0 +1,8 @@
+- [X] Intercept for handshake
+- [X] Network routing
+- [X] Sentence list.
+- [X] Send ack/nack.
+- [X] Broadcast new game.
+- [ ] Don't double-count.
+- [X] Instructions
+- [X] Scoreboard
