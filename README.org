@@ -8,7 +8,7 @@ about how hurried I was than how to write Clojure programs!
 
 ** Running
 
-Call `lein run <port>`.
+Call =lein run <port>=.
 
 ** License
 
